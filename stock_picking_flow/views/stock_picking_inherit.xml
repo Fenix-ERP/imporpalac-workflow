@@ -19,9 +19,6 @@
             <xpath expr="//field[@name='scheduled_date']" position="attributes">
                 <attribute name="readonly">1</attribute>
             </xpath>
-            <xpath expr="//field[@name='origin']" position="attributes">
-                <attribute name="readonly">1</attribute>
-            </xpath>
             <xpath expr="//field[@name='user_id']" position="attributes">
                 <attribute name="readonly">1</attribute>
             </xpath>
