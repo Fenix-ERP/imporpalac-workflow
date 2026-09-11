@@ -107,6 +107,7 @@
             >
                 <field name="product_pricelist_domain" column_invisible="1" />
                 <field name="is_special_pricelist" column_invisible="1" />
+                <field name="is_lower_than_minimum" column_invisible="1" />
                 <field
                     name="line_pricelist_id"
                     domain="product_pricelist_domain"

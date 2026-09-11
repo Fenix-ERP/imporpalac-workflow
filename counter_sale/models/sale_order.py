@@ -2,6 +2,7 @@ from datetime import datetime, timedelta
 
 from odoo import _, api, fields, models
 from odoo.exceptions import UserError, ValidationError
+from odoo.tools import float_compare
 
 
 class SaleOrder(models.Model):
@@ -44,11 +45,12 @@ class SaleOrder(models.Model):
             return res
         for order in self:
             to_approve = order.pending_approval
-            lines_with_wholesale = order.order_line.filtered(
+            lines_to_approval = order.order_line.filtered(
                 lambda line: line.line_pricelist_id in [wholesale, special, card]
                 and line.discount > 0
+                or line.is_lower_than_minimum
             )
-            if lines_with_wholesale:
+            if lines_to_approval:
                 to_approve = True
             order.pending_approval = to_approve
         return res
@@ -238,6 +240,7 @@ class SaleOrderLine(models.Model):
     line_pricelist_id = fields.Many2one("product.pricelist")
 
     is_special_pricelist = fields.Boolean(compute="_compute_is_special_pricelist")
+    is_lower_than_minimum = fields.Boolean(compute="_compute_is_lower_than_minimum")
 
     @api.depends("line_pricelist_id")
     def _compute_is_special_pricelist(self):
@@ -305,6 +308,28 @@ class SaleOrderLine(models.Model):
         if set(vals.keys()) == {"line_pricelist_id"}:
             self._recompute_prices()
         return res
+
+    @api.depends("price_unit")
+    def _compute_is_lower_than_minimum(self):
+        wholesale = self.env.ref(
+            "counter_sale.pricelist_wholesale", raise_if_not_found=False
+        )
+        precision = self.env["decimal.precision"].precision_get("Product Price")
+        if not wholesale:
+            return
+        for line in self:
+            product = line.product_id
+            if product.type != "product":
+                continue
+            qty = line.product_uom_qty or 1
+            min_price = wholesale._get_product_price(product, qty)
+            discount = line.discount or 0.0
+            current_price = line.price_unit
+            current_price = current_price * (1 - discount / 100.0)
+            if float_compare(current_price, min_price, precision_digits=precision) < 0:
+                line.is_lower_than_minimum = True
+            else:
+                line.is_lower_than_minimum = False
 
     def validate_pricelist(self):
         wholesale = self.env.ref(
