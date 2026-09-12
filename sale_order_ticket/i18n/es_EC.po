@@ -75,7 +75,7 @@ msgstr ""
 #. module: sale_order_ticket
 #: model:ir.actions.report,name:sale_order_ticket.action_report_ticket_cash
 msgid "Quotation Cash Ticket"
-msgstr "Cotizacion Ticket Efectivo"
+msgstr "Cotizacion Ticket Caja"
 
 #. module: sale_order_ticket
 #: model:ir.actions.report,name:sale_order_ticket.action_report_ticket_dispatch
@@ -90,7 +90,7 @@ msgstr "Reporte Cotizacion Ticket Despacho"
 #. module: sale_order_ticket
 #: model:ir.model,name:sale_order_ticket.model_report_sale_order_ticket_report_ticket_cash
 msgid "Quotation Cash Ticket Report"
-msgstr "Reporte Cotizacion Ticket Efectivo"
+msgstr "Reporte Cotizacion Ticket Caja"
 
 #. module: sale_order_ticket
 #: model_terms:ir.ui.view,arch_db:sale_order_ticket.report_ticket_cash_document

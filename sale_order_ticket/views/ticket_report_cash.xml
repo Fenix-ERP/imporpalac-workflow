@@ -271,7 +271,13 @@
                         <t t-esc="'%.2f' % o.amount_total" />
                     </div>
                 </div>
-
+                <div class="pos-order-lines-header">
+                </div>
+                <t t-if="o.note">
+                    <div class="flex-product">
+                        <t t-esc="o.note" />
+                    </div>
+                </t>
                 <div class="pos-line" />
 
                 <div class="pos-center" style="font-size: 10px;">

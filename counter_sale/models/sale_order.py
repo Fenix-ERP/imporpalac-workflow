@@ -316,19 +316,23 @@ class SaleOrderLine(models.Model):
         "product_uom_qty",
     )
     def _compute_is_lower_than_minimum(self):
-        wholesale = self.env.ref(
-            "counter_sale.pricelist_wholesale", raise_if_not_found=False
-        )
         precision = self.env["decimal.precision"].precision_get("Product Price")
         for line in self:
+            sale_user = line.order_id.user_id
             line.is_lower_than_minimum = False
-            if not wholesale:
-                continue
             product = line.product_id
             if product.type != "product":
                 continue
             qty = line.product_uom_qty or 1
-            min_price = wholesale._get_product_price(product, qty)
+            result = line.line_pricelist_id._compute_price_rule(product, qty)
+            pricelist_price, rule_id = result.get(line.product_id.id, (0.0, False))
+            min_price = pricelist_price
+
+            if sale_user.limit_discount_enabled:
+                min_price = pricelist_price * (
+                    1 - sale_user.max_discount_percent / 100.0
+                )
+
             discount = line.discount or 0.0
             current_price = line.price_unit
             current_price = current_price * (1 - discount / 100.0)
