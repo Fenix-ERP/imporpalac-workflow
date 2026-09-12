@@ -309,15 +309,21 @@ class SaleOrderLine(models.Model):
             self._recompute_prices()
         return res
 
-    @api.depends("price_unit")
+    @api.depends(
+        "price_unit",
+        "discount",
+        "product_id",
+        "product_uom_qty",
+    )
     def _compute_is_lower_than_minimum(self):
         wholesale = self.env.ref(
             "counter_sale.pricelist_wholesale", raise_if_not_found=False
         )
         precision = self.env["decimal.precision"].precision_get("Product Price")
-        if not wholesale:
-            return
         for line in self:
+            line.is_lower_than_minimum = False
+            if not wholesale:
+                continue
             product = line.product_id
             if product.type != "product":
                 continue
@@ -326,10 +332,14 @@ class SaleOrderLine(models.Model):
             discount = line.discount or 0.0
             current_price = line.price_unit
             current_price = current_price * (1 - discount / 100.0)
-            if float_compare(current_price, min_price, precision_digits=precision) < 0:
-                line.is_lower_than_minimum = True
-            else:
-                line.is_lower_than_minimum = False
+            line.is_lower_than_minimum = (
+                float_compare(
+                    current_price,
+                    min_price,
+                    precision_digits=precision,
+                )
+                < 0
+            )
 
     def validate_pricelist(self):
         wholesale = self.env.ref(
